@@ -1,6 +1,6 @@
 import re
 from typing import Union, List
-from .utils import log_message
+from src.utils import log_message
 
 # Regex to find the target line.
 # It looks for any characters (.*) followed by the literal pattern '_1_' 

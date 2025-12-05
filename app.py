@@ -35,7 +35,7 @@ def process_image(uploaded_file):
         return
 
     # Display original image
-    st.image(original_image, caption='Original Shipping Label Image', use_column_width=True)
+    st.image(original_image, caption='Original Shipping Label Image', width=600)
     
     with st.spinner('Running OCR and Extraction Pipeline...'):
         start_time = datetime.now()
@@ -46,9 +46,9 @@ def process_image(uploaded_file):
             st.error("Preprocessing step failed.")
             return
 
-        # Display preprocessed image (optional, for debugging/demo)
-        # st.subheader("Preprocessed Image (Binarized)")
-        # st.image(processed_image, caption='Preprocessed Image (Grayscale + Thresholding)', use_column_width=True)
+        # Display preprocessed image for debugging
+        st.subheader("🔍 Preprocessed Image (for debugging)")
+        st.image(processed_image, caption='Preprocessed Image (Grayscale + Thresholding)', width=600)
 
         # 3. Perform OCR
         raw_ocr_text = perform_ocr(processed_image)
@@ -56,6 +56,18 @@ def process_image(uploaded_file):
         if raw_ocr_text is None or "ERROR" in raw_ocr_text:
             st.error(f"OCR Failed: {raw_ocr_text}")
             return
+
+        # DEBUG: Show all lines from OCR
+        st.subheader("🐛 Debug: OCR Lines Analysis")
+        lines = raw_ocr_text.split('\n')
+        st.write(f"Total lines detected: {len(lines)}")
+        
+        with st.expander("View all lines (click to expand)"):
+            for i, line in enumerate(lines):
+                st.text(f"Line {i}: '{line}' (length: {len(line.strip())})")
+                # Check if line contains underscore and 1
+                if '_' in line and '1' in line:
+                    st.success(f"✓ Line {i} contains '_' and '1': {line}")
 
         # 4. Target Extraction
         extracted_line = extract_target_line(raw_ocr_text)
@@ -84,47 +96,61 @@ def process_image(uploaded_file):
                 "file_name": uploaded_file.name,
                 "target_pattern": TARGET_PATTERN,
                 "extracted_text": extracted_line,
+                "processing_time_seconds": duration,
                 "confidence_score": "N/A (Tesseract requires advanced config to report line confidence)"
             }
             
             st.download_button(
-                label="Download JSON Result",
+                label="📥 Download JSON Result",
                 data=json.dumps(mock_json_output, indent=4),
                 file_name=f"{uploaded_file.name}_result.json",
                 mime="application/json",
             )
             
         else:
-            st.warning("Target line containing '_1_' not found.")
+            st.warning("⚠️ Target line containing '_1_' not found.")
+            st.info("💡 Tip: Check the 'Debug: OCR Lines Analysis' section above to see what was detected.")
 
     with col2:
-        st.subheader("Raw OCR Output")
+        st.subheader("📄 Raw OCR Output")
         st.text_area(
             "Full Text from OCR", 
             raw_ocr_text, 
             height=300
         )
-        st.info("The extraction logic scans this raw text to find the line with the target pattern.")
+        st.info("The extraction logic scans this raw text to find the line with the target pattern '_1_'.")
 
 
 # --- Streamlit UI Layout ---
 st.title("📦 AI/ML OCR Text Extraction System")
 st.markdown("### Shipping Label Identifier Extractor")
 
-st.sidebar.header("Upload Image")
+st.sidebar.header("📤 Upload Image")
 uploaded_file = st.sidebar.file_uploader(
     "Choose a shipping label image (.jpg, .png)", 
     type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file is not None:
-    st.sidebar.success("Image uploaded. Click Process to start!")
+    st.sidebar.success("✓ Image uploaded. Click Process to start!")
     
-    # Save the uploaded file for display and processing
-    # The file object is passed directly to the processing function
+    # Advanced options
+    with st.sidebar.expander("⚙️ Advanced Options"):
+        show_preprocessed = st.checkbox("Show preprocessed image", value=True)
+        show_debug = st.checkbox("Show debug information", value=True)
     
     if st.sidebar.button("⚙️ Process Image", type="primary"):
         process_image(uploaded_file)
     
 else:
-    st.info("Upload an image of a shipping label to begin the OCR process.")
+    st.info("👆 Upload an image of a shipping label to begin the OCR process.")
+    
+    st.markdown("""
+    ### How to use:
+    1. Upload a shipping label image using the sidebar
+    2. Click the "Process Image" button
+    3. View the extracted text containing the pattern `_1_`
+    
+    ### Expected format:
+    The system will extract lines like: `163233702292313922_1_lWV`
+    """)
