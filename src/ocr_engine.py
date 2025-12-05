@@ -3,7 +3,7 @@ from PIL import Image
 import numpy as np
 import io
 from typing import Union
-from .utils import log_message
+from src.utils import log_message
 
 # Configuration for Tesseract (adjust path if needed, especially on Windows)
 # Example for Windows: pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
