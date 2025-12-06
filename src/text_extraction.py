@@ -6,10 +6,10 @@ from src.utils import log_message
 # It looks for any characters (.*) followed by the literal pattern '_1_' 
 # and then any subsequent characters (.*) until the end of the line ($).
 # The re.MULTILINE flag is essential to treat the string as multiple lines.
-TARGET_PATTERN = r'^.*(_1_).*$'
-TARGET_PATTERN_ROBUST = r'^.*(\d+)_1_(\d+).*$' # A more robust pattern assuming the number format
+TARGET_PATTERN = r"^.*[_\- ]1[_\-A-Za-z0-9 ].*$"
 
-def extract_target_line(ocr_text: str, pattern: str = TARGET_PATTERN_ROBUST) -> Union[str, None]:
+
+def extract_target_line(ocr_text: str, pattern: str = TARGET_PATTERN) -> Union[str, None]:
     """
     Analyzes the raw OCR text to find the complete line containing the target pattern.
 
